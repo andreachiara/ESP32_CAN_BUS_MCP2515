@@ -39,7 +39,7 @@ class MCP_CAN
     uint8_t   dta[MAX_CHAR_IN_MESSAGE];        // data
     uint8_t   rtr;                             // rtr
     uint8_t   filhit;
-    uint8_t   SPICS;
+    gpio_num_t   SPICS;
 
 /*
 *  mcp2515 driver function

@@ -51,6 +51,9 @@
 #define SPI_BEGIN()     SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0))
 #define SPI_END()       SPI.endTransaction()
 
+#define GPIO_OUTPUT_IO_0    18
+#define GPIO_OUTPUT_PIN_SEL  ((1ULL<<GPIO_OUTPUT_IO_0))
+
 /*********************************************************************************************************
 ** Function name:           mcp2515_reset
 ** Descriptions:            reset the device
@@ -66,7 +69,7 @@ void MCP_CAN::mcp2515_reset(void)
 #ifdef SPI_HAS_TRANSACTION
     SPI_END();
 #endif
-    delay(10);
+    //delay(10);
 }
 
 /*********************************************************************************************************
@@ -396,14 +399,14 @@ uint8_t MCP_CAN::mcp2515_init(const uint8_t canSpeed)
 #if DEBUG_EN
         Serial.print("Enter setting mode fall\r\n");
 #else
-        delay(10);
+        //delay(10);
 #endif
         return res;
     }
 #if DEBUG_EN
     Serial.print("Enter setting mode success \r\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
 
     // set boadrate
@@ -412,14 +415,14 @@ uint8_t MCP_CAN::mcp2515_init(const uint8_t canSpeed)
 #if DEBUG_EN
         Serial.print("set rate fall!!\r\n");
 #else
-        delay(10);
+        //delay(10);
 #endif
         return res;
     }
 #if DEBUG_EN
     Serial.print("set rate success!!\r\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
 
     if(res == MCP2515_OK) {
@@ -452,7 +455,7 @@ uint8_t MCP_CAN::mcp2515_init(const uint8_t canSpeed)
 #if DEBUG_EN
             Serial.print("Enter Normal Mode Fall!!\r\n");
 #else
-            delay(10);
+            //delay(10);
 #endif
             return res;
         }
@@ -461,7 +464,7 @@ uint8_t MCP_CAN::mcp2515_init(const uint8_t canSpeed)
 #if DEBUG_EN
         Serial.print("Enter Normal Mode Success!!\r\n");
 #else
-        delay(10);
+        //delay(10);
 #endif
 
     }
@@ -613,7 +616,16 @@ MCP_CAN::MCP_CAN(uint8_t _CS)
 *********************************************************************************************************/
 uint8_t MCP_CAN::begin(uint8_t speedset)
 {
-    pinMode(SPICS, OUTPUT);
+    gpio_config_t io_conf;
+    //disable interrupt
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    //set as output mode
+    io_conf.mode = GPIO_MODE_OUTPUT;
+    //bit mask of the pins that you want to set,e.g.GPIO18/19
+    io_conf.pin_bit_mask = ((1ULL<<SPICS));
+    //configure GPIO with the given settings
+    gpio_config(&io_conf);
+    //pinMode(SPICS, OUTPUT);
     MCP2515_UNSELECT();
     SPI.begin();
     uint8_t res = mcp2515_init(speedset);
@@ -630,14 +642,14 @@ uint8_t MCP_CAN::init_Mask(uint8_t num, uint8_t ext, unsigned long ulData)
 #if DEBUG_EN
     Serial.print("Begin to set Mask!!\r\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
     res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
     if(res > 0){
 #if DEBUG_EN
         Serial.print("Enter setting mode fall\r\n");
 #else
-        delay(10);
+        //delay(10);
 #endif
         return res;
     }
@@ -656,14 +668,14 @@ uint8_t MCP_CAN::init_Mask(uint8_t num, uint8_t ext, unsigned long ulData)
 #if DEBUG_EN
         Serial.print("Enter normal mode fall\r\n");
 #else
-        delay(10);
+        //delay(10);
 #endif
         return res;
     }
 #if DEBUG_EN
     Serial.print("set Mask success!!\r\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
     return res;
 }
@@ -678,7 +690,7 @@ uint8_t MCP_CAN::init_Filt(uint8_t num, uint8_t ext, unsigned long ulData)
 #if DEBUG_EN
     Serial.print("Begin to set Filter!!\r\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
     res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
     if(res > 0)
@@ -686,7 +698,7 @@ uint8_t MCP_CAN::init_Filt(uint8_t num, uint8_t ext, unsigned long ulData)
 #if DEBUG_EN
         Serial.print("Enter setting mode fall\r\n");
 #else
-        delay(10);
+        //delay(10);
 #endif
         return res;
     }
@@ -727,14 +739,14 @@ uint8_t MCP_CAN::init_Filt(uint8_t num, uint8_t ext, unsigned long ulData)
 #if DEBUG_EN
         Serial.print("Enter normal mode fall\r\nSet filter fail!!\r\n");
 #else
-        delay(10);
+        //delay(10);
 #endif
         return res;
     }
 #if DEBUG_EN
     Serial.print("set Filter success!!\r\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
 
     return res;
@@ -748,7 +760,7 @@ uint8_t MCP_CAN::setMsg(unsigned long id, uint8_t ext, uint8_t len, uint8_t rtr,
 {
     ext_flg     = ext;
     can_id      = id;
-    dta_len     = min(len, MAX_CHAR_IN_MESSAGE);
+    dta_len     = std::min(len, MAX_CHAR_IN_MESSAGE);
     rtr         = rtr;
     for(int i = 0; i<dta_len; i++)
     {

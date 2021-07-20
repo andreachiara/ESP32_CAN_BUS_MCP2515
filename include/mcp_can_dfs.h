@@ -25,9 +25,13 @@
 #define _MCP2515DFS_H_
 
 //#include <Arduino.h>
+#include "driver/gpio.h"
 #include <driver/spi_master.h>
 #include <inttypes.h>
 
+
+#define LOW 0
+#define HIGH 1
 
 // if print debug information
 #define DEBUG_EN        0
@@ -295,8 +299,8 @@
 #define MCP_RXBUF_0 (MCP_RXB0SIDH)
 #define MCP_RXBUF_1 (MCP_RXB1SIDH)
 
-#define MCP2515_SELECT()   digitalWrite(SPICS, LOW)
-#define MCP2515_UNSELECT() digitalWrite(SPICS, HIGH)
+#define MCP2515_SELECT()   gpio_set_level(SPICS, LOW)
+#define MCP2515_UNSELECT() gpio_set_level(SPICS, HIGH)
 
 #define MCP2515_OK         (0)
 #define MCP2515_FAIL       (1)
