@@ -45,8 +45,9 @@
   THE SOFTWARE.
 */
 #include "mcp_can.h"
+#include "spi_driver.h"
 
-#define spi_readwrite   SPI.transfer
+#define spi_readwrite   spi2_send_byte
 #define spi_read()      spi_readwrite(0x00)
 #define SPI_BEGIN()     SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0))
 #define SPI_END()       SPI.endTransaction()
@@ -607,7 +608,7 @@ uint8_t MCP_CAN::mcp2515_getNextFreeTXBuf(uint8_t *txbuf_n)                 // g
 *********************************************************************************************************/
 MCP_CAN::MCP_CAN(uint8_t _CS)
 {
-    SPICS = _CS;
+    SPICS = static_cast<gpio_num_t>(_CS);
 }
 
 /*********************************************************************************************************
@@ -627,7 +628,7 @@ uint8_t MCP_CAN::begin(uint8_t speedset)
     gpio_config(&io_conf);
     //pinMode(SPICS, OUTPUT);
     MCP2515_UNSELECT();
-    SPI.begin();
+    init_spi_can1();
     uint8_t res = mcp2515_init(speedset);
     return ((res == MCP2515_OK) ? CAN_OK : CAN_FAILINIT);
 }
@@ -760,7 +761,7 @@ uint8_t MCP_CAN::setMsg(unsigned long id, uint8_t ext, uint8_t len, uint8_t rtr,
 {
     ext_flg     = ext;
     can_id      = id;
-    dta_len     = std::min(len, MAX_CHAR_IN_MESSAGE);
+    dta_len     = std::min(static_cast<int>(len), MAX_CHAR_IN_MESSAGE);
     rtr         = rtr;
     for(int i = 0; i<dta_len; i++)
     {
